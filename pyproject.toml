@@ -1,0 +1,79 @@
+[build-system]
+requires = ["hatchling==1.31.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "queryguard"
+version = "0.1.0"
+description = "A safe, explainable natural-language-to-PostgreSQL explorer."
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+  { name = "Saber Ghanbarnejad" },
+]
+keywords = ["fastapi", "llm", "natural-language", "postgresql", "sql", "security"]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.12",
+  "Typing :: Typed",
+]
+dependencies = [
+  "fastapi[standard-no-fastapi-cloud-cli]==0.139.2",
+  "httpx==0.28.1",
+  "openai==2.46.0",
+  "psycopg[binary]==3.3.4",
+  "pydantic==2.13.4",
+  "pydantic-settings==2.14.2",
+  "sqlalchemy==2.0.51",
+  "sqlglot==30.12.0",
+  "streamlit==1.59.2",
+]
+
+[project.optional-dependencies]
+dev = [
+  "mypy==2.3.0",
+  "pytest==9.1.1",
+  "pytest-asyncio==1.4.0",
+  "pytest-cov==7.1.0",
+  "ruff==0.15.22",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/queryguard"]
+
+[tool.pytest.ini_options]
+addopts = "-ra --strict-config --strict-markers"
+testpaths = ["tests"]
+asyncio_mode = "auto"
+markers = [
+  "integration: requires the PostgreSQL services",
+  "security: verifies database permissions and malicious-query controls",
+  "live_llm: incurs external API usage and requires explicit opt-in",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["queryguard"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["B", "E", "F", "I", "RUF", "SIM", "UP"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unused_configs = true
+files = ["src", "tests"]
+
