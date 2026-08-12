@@ -1,5 +1,3 @@
-"""QueryGuard application package."""
-
-__all__ = ["__version__"]
+"""QueryGuard package."""
 
 __version__ = "0.1.0"

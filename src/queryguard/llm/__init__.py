@@ -1,1 +1,1 @@
-"""Provider-neutral language-model boundary."""
+"""Language-model provider package."""

@@ -1,0 +1,32 @@
+name: queryguard
+
+services:
+  postgres:
+    image: postgres:18.4-bookworm
+    restart: unless-stopped
+    shm_size: 128mb
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-queryguard}
+      POSTGRES_USER: ${POSTGRES_USER:-queryguard_bootstrap}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+      POSTGRES_INITDB_ARGS: --data-checksums --auth-host=scram-sha-256
+      QUERYGUARD_OWNER_PASSWORD: ${QUERYGUARD_OWNER_PASSWORD:?Set QUERYGUARD_OWNER_PASSWORD in .env}
+      QUERYGUARD_RUNTIME_PASSWORD: ${QUERYGUARD_RUNTIME_PASSWORD:?Set QUERYGUARD_RUNTIME_PASSWORD in .env}
+      QUERYGUARD_AUDIT_PASSWORD: ${QUERYGUARD_AUDIT_PASSWORD:?Set QUERYGUARD_AUDIT_PASSWORD in .env}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - queryguard_postgres_data:/var/lib/postgresql
+      - ./database/init:/docker-entrypoint-initdb.d:ro
+      - ./database:/opt/queryguard/database:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    stop_grace_period: 30s
+
+volumes:
+  queryguard_postgres_data:

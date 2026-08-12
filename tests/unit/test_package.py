@@ -1,5 +1,3 @@
-"""Phase 0 package smoke tests."""
-
 from queryguard import __version__
 
 

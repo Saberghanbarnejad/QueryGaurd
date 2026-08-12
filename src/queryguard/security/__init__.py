@@ -1,1 +1,1 @@
-"""SQL validation policies and limits."""
+"""SQL validation and policy package."""

@@ -1,1 +1,1 @@
-"""Application orchestration services."""
+"""Application service package."""

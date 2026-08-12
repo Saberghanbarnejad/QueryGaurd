@@ -1,1 +1,1 @@
-"""Database inspection, execution, and audit adapters."""
+"""Database access package."""

@@ -1,1 +1,1 @@
-"""FastAPI boundary package."""
+"""HTTP API package."""

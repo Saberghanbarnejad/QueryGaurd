@@ -1,1 +1,1 @@
-"""Cross-cutting configuration, errors, and logging."""
+"""Cross-cutting configuration and application concerns."""
