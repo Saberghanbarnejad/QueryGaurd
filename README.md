@@ -6,9 +6,15 @@ project in controlled, verified checkpoints.
 
 ## Current status
 
-Phase 1, checkpoint 1: PostgreSQL 18.4, isolated database roles, schema
-boundaries, and executable permission tests. No ERP tables, API, LLM
-integration, SQL validator, or UI exists yet.
+Phase 1, checkpoint 2: PostgreSQL 18.4, isolated database roles, and 12 empty
+ERP tables with constraints, indexes, descriptions, and executable catalog
+tests. Seed data, API, LLM integration, SQL validator, and UI do not exist yet.
+
+## Current mission
+
+**NOW — QG-M01: Define structured generation outcomes.** Keep exactly one active
+mission and no more than two detailed upcoming missions in the
+[`mission-control roadmap`](ROADMAP.md).
 
 ## Why a dedicated application?
 
@@ -25,8 +31,9 @@ presentation layer. Generated SQL follows this lifecycle:
 `generate → validate → confirm → revalidate → execute read-only → audit`
 
 Database access is split across an owner/migration role, a strict ERP query
-role, and a narrowly scoped audit writer. See
-[`docs/phase-1-checkpoint-1.md`](docs/phase-1-checkpoint-1.md).
+role, and a narrowly scoped audit writer. See the
+[`checkpoint 1 security guide`](docs/phase-1-checkpoint-1.md) and the
+[`checkpoint 2 schema guide`](docs/phase-1-checkpoint-2.md).
 
 ## Technology stack
 
@@ -58,8 +65,16 @@ python -m pip install -e ".[dev]"
 cp .env.example .env
 ```
 
-Replace every `change-me` password in `.env`, then follow the
-[Phase 1 checkpoint guide](docs/phase-1-checkpoint-1.md).
+Replace every `change-me` password in `.env`, then follow the Phase 1
+[`role guide`](docs/phase-1-checkpoint-1.md) and
+[`schema guide`](docs/phase-1-checkpoint-2.md).
+
+## ERP schema
+
+The empty synthetic ERP schema contains customers, suppliers, product
+categories, products, warehouses, inventory, employees, sales orders and
+items, purchase orders and items, and product returns. Every table is owned by
+`queryguard_owner`; `queryguard_runtime` receives only `SELECT` access.
 
 ## Development checks
 
