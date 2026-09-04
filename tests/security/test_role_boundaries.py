@@ -1,41 +1,11 @@
 import os
-from collections.abc import Iterator
-from contextlib import contextmanager
-from typing import Any
 
-import psycopg
 import pytest
-from psycopg import Connection, errors, sql
+from psycopg import errors, sql
 
+from tests.database_support import DATABASE_TEST_MARK, connect_as
 
-def _database_tests_enabled() -> bool:
-    return os.getenv("QUERYGUARD_RUN_DB_TESTS") == "1"
-
-
-pytestmark = pytest.mark.skipif(
-    not _database_tests_enabled(),
-    reason="set QUERYGUARD_RUN_DB_TESTS=1 to run PostgreSQL security tests",
-)
-
-
-@contextmanager
-def _connect(username: str, password_variable: str) -> Iterator[Connection[Any]]:
-    password = os.environ.get(password_variable)
-    if not password:
-        pytest.fail(f"{password_variable} must be set for database security tests")
-
-    connection = psycopg.connect(
-        host="127.0.0.1",
-        port=int(os.getenv("POSTGRES_PORT", "5432")),
-        dbname=os.getenv("POSTGRES_DB", "queryguard"),
-        user=username,
-        password=password,
-        autocommit=True,
-    )
-    try:
-        yield connection
-    finally:
-        connection.close()
+pytestmark = DATABASE_TEST_MARK
 
 
 def test_application_roles_are_unprivileged_login_roles() -> None:
@@ -44,7 +14,9 @@ def test_application_roles_are_unprivileged_login_roles() -> None:
         "queryguard_runtime": 10,
         "queryguard_audit": 5,
     }
-    with _connect(os.getenv("POSTGRES_USER", "queryguard_bootstrap"), "POSTGRES_PASSWORD") as conn:
+    with connect_as(
+        os.getenv("POSTGRES_USER", "queryguard_bootstrap"), "POSTGRES_PASSWORD"
+    ) as conn:
         rows = conn.execute(
             """
             SELECT rolname, rolsuper, rolcreatedb, rolcreaterole, rolcanlogin,
@@ -78,7 +50,9 @@ def test_application_roles_are_unprivileged_login_roles() -> None:
 
 
 def test_schema_access_is_separated() -> None:
-    with _connect(os.getenv("POSTGRES_USER", "queryguard_bootstrap"), "POSTGRES_PASSWORD") as conn:
+    with connect_as(
+        os.getenv("POSTGRES_USER", "queryguard_bootstrap"), "POSTGRES_PASSWORD"
+    ) as conn:
         permissions = conn.execute(
             """
             SELECT
@@ -97,7 +71,9 @@ def test_schema_access_is_separated() -> None:
 
 
 def test_owner_owns_only_the_application_schemas() -> None:
-    with _connect(os.getenv("POSTGRES_USER", "queryguard_bootstrap"), "POSTGRES_PASSWORD") as conn:
+    with connect_as(
+        os.getenv("POSTGRES_USER", "queryguard_bootstrap"), "POSTGRES_PASSWORD"
+    ) as conn:
         rows = conn.execute(
             """
             SELECT nspname, pg_catalog.pg_get_userbyid(nspowner)
@@ -115,7 +91,7 @@ def test_owner_owns_only_the_application_schemas() -> None:
 def test_runtime_cannot_create_objects_even_after_disabling_read_only_default(
     target_schema: str,
 ) -> None:
-    with _connect("queryguard_runtime", "QUERYGUARD_RUNTIME_PASSWORD") as conn:
+    with connect_as("queryguard_runtime", "QUERYGUARD_RUNTIME_PASSWORD") as conn:
         conn.execute("SET default_transaction_read_only = off")
         conn.execute("BEGIN")
         try:
@@ -129,9 +105,33 @@ def test_runtime_cannot_create_objects_even_after_disabling_read_only_default(
             conn.execute("ROLLBACK")
 
 
+@pytest.mark.parametrize(
+    "forbidden_statement",
+    [
+        "INSERT INTO erp.customers DEFAULT VALUES",
+        "UPDATE erp.customers SET is_active = false",
+        "DELETE FROM erp.customers",
+        "TRUNCATE TABLE erp.customers",
+        "ALTER TABLE erp.customers ADD COLUMN permission_probe integer",
+        "DROP TABLE erp.customers",
+    ],
+)
+def test_runtime_cannot_modify_erp_tables_even_after_disabling_read_only_default(
+    forbidden_statement: str,
+) -> None:
+    with connect_as("queryguard_runtime", "QUERYGUARD_RUNTIME_PASSWORD") as conn:
+        conn.execute("SET default_transaction_read_only = off")
+        conn.execute("BEGIN")
+        try:
+            with pytest.raises(errors.InsufficientPrivilege):
+                conn.execute(forbidden_statement)
+        finally:
+            conn.execute("ROLLBACK")
+
+
 @pytest.mark.parametrize("target_schema", ["erp", "audit", "public"])
 def test_audit_role_cannot_create_objects(target_schema: str) -> None:
-    with _connect("queryguard_audit", "QUERYGUARD_AUDIT_PASSWORD") as conn:
+    with connect_as("queryguard_audit", "QUERYGUARD_AUDIT_PASSWORD") as conn:
         conn.execute("BEGIN")
         try:
             with pytest.raises(errors.InsufficientPrivilege):
@@ -145,7 +145,7 @@ def test_audit_role_cannot_create_objects(target_schema: str) -> None:
 
 
 def test_runtime_session_has_defensive_defaults() -> None:
-    with _connect("queryguard_runtime", "QUERYGUARD_RUNTIME_PASSWORD") as conn:
+    with connect_as("queryguard_runtime", "QUERYGUARD_RUNTIME_PASSWORD") as conn:
         settings = conn.execute(
             """
             SELECT current_user,
