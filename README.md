@@ -21,9 +21,7 @@ presentation layer. Generated SQL follows this lifecycle:
 `generate → validate → confirm → revalidate → execute read-only → audit`
 
 Database access is split across an owner/migration role, a strict ERP query
-role, and a narrowly scoped audit writer. See the
-[`checkpoint 1 security guide`](docs/phase-1-checkpoint-1.md) and the
-[`checkpoint 2 schema guide`](docs/phase-1-checkpoint-2.md).
+role, and a narrowly scoped audit writer. 
 
 ## Technology stack
 
@@ -31,8 +29,8 @@ role, and a narrowly scoped audit writer. See the
 - FastAPI and Pydantic 2
 - PostgreSQL 18.4 and SQLAlchemy 2
 - SQLGlot
-- OpenAI Responses API with Structured Outputs (Phase 3)
-- Streamlit (Phase 6)
+- OpenAI Responses API with Structured Outputs 
+- Streamlit
 - pytest, Ruff, and mypy
 - Docker Compose
 
@@ -55,9 +53,6 @@ python -m pip install -e ".[dev]"
 cp .env.example .env
 ```
 
-Replace every `change-me` password in `.env`, then follow the Phase 1
-[`role guide`](docs/phase-1-checkpoint-1.md) and
-[`schema guide`](docs/phase-1-checkpoint-2.md).
 
 ## ERP schema
 
