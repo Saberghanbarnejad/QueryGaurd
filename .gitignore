@@ -44,3 +44,5 @@ Thumbs.db
 .idea/
 .vscode/
 
+# Personal project-management notes
+/.private/
