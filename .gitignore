@@ -45,4 +45,4 @@ Thumbs.db
 .vscode/
 
 # Personal project-management notes
-/.private/
+/.private/*
