@@ -39,8 +39,8 @@ role, and a narrowly scoped audit writer.
 - Python 3.12.x
 - Git 2.40+
 - Docker Desktop or Docker Engine with Compose v2
-- OpenAI API key beginning in Phase 3 only
-
+- OpenAI API key
+  
 ## Setup
 
 Run from the repository root:
