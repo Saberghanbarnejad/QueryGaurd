@@ -4,17 +4,7 @@ QueryGuard is a safe, explainable natural-language SQL explorer for a synthetic
 PostgreSQL ERP database. It is being built as a production-quality portfolio
 project in controlled, verified checkpoints.
 
-## Current status
 
-Phase 1, checkpoint 2: PostgreSQL 18.4, isolated database roles, and 12 empty
-ERP tables with constraints, indexes, descriptions, and executable catalog
-tests. Seed data, API, LLM integration, SQL validator, and UI do not exist yet.
-
-## Current mission
-
-**NOW — QG-M01: Define structured generation outcomes.** Keep exactly one active
-mission and no more than two detailed upcoming missions in the
-[`mission-control roadmap`](ROADMAP.md).
 
 ## Why a dedicated application?
 
