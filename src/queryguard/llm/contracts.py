@@ -1,11 +1,15 @@
 from datetime import date
 from typing import Annotated
 
-from pydantic import BaseModel, StringConstraints
+from pydantic import BaseModel, ConfigDict, StringConstraints
 
 
 class GenerationRequest(BaseModel):
-    schema_context: str
+    model_config = ConfigDict(extra="forbid")
+    schema_context: Annotated[
+        str,
+        StringConstraints(strip_whitespace=True, min_length=1),
+    ]
     data_as_of: date
 
     question: Annotated[
