@@ -3,7 +3,7 @@ from datetime import date
 import pytest
 from pydantic import ValidationError
 
-from queryguard.llm.contracts import GenerationRequest
+from queryguard.llm.contracts import GenerationRequest, ClarificationOutcome
 
 
 def test_generation_request_rejects_whitespace_only_question() -> None:
@@ -59,5 +59,46 @@ def test_generation_request_rejects_extra_fields() -> None:
                 "schema_context": "Table: erp.customers",
                 "data_as_of": date(2026, 6, 30),
                 "debug_mode": True,
+            }
+        )
+def test_clarification_outcome_trims_question() -> None:
+    outcome = ClarificationOutcome(
+        status="clarification",
+        clarification_question=" Which Year? ",
+        reason="the requested date range is ambiguous",
+    )
+    
+    assert outcome.clarification_question == "Which Year?"
+def test_clarification_outcome_rejects_blank_question() -> None:
+    with pytest.raises(ValidationError):
+        ClarificationOutcome(
+            status="clarification",
+            clarification_question="   ",
+            reason="the requested date range is ambiguous",
+        )
+def test_clarification_outcome_rejects_wrong_status() -> None:
+    with pytest.raises(ValidationError):
+        ClarificationOutcome.model_validate(
+            {
+                "status": "proposal",
+                "clarification_question": "Which Year?",
+                "reason": "the requested date range is ambiguous",
+            }
+        )
+def test_clarification_outcome_rejects_blank_reason() -> None:
+    with pytest.raises(ValidationError):
+        outcome = ClarificationOutcome(
+            status="clarification",
+            clarification_question="Which Year?",
+            reason="   ",
+        )        
+def test_clarification_outcome_rejects_extra_fields() -> None:
+    with pytest.raises(ValidationError):
+        ClarificationOutcome.model_validate(
+            {
+                "status": "clarification",
+                "clarification_question": "Which Year?",
+                "reason": "the requested date range is ambiguous",
+                "SQL": "SELECT * FROM erp.customers",
             }
         )
