@@ -50,3 +50,8 @@ class ProposalOutcome(BaseModel):
     tables_used: list[str]
     assumptions: list[str]
     confidence: Annotated[float, Field(ge=0, le=1)]
+
+
+GenerationOutcome = Annotated[
+    ClarificationOutcome | RejectionOutcome | ProposalOutcome, Field(discriminator="status")
+]
