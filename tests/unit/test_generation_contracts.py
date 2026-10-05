@@ -1,10 +1,11 @@
 from datetime import date
 
 import pytest
-from pydantic import ValidationError
+from pydantic import TypeAdapter, ValidationError
 
 from queryguard.llm.contracts import (
     ClarificationOutcome,
+    GenerationOutcome,
     GenerationRequest,
     ProposalOutcome,
     RejectionOutcome,
@@ -157,3 +158,42 @@ def test_proposal_outcome_accepts_valid_input() -> None:
     assert outcome.explanation == "Return 5 customer IDs."
     assert outcome.tables_used == ["erp.customers"]
     assert outcome.confidence == 0.8
+
+
+def test_generation_outcome_routes_clarification() -> None:
+    adapter: TypeAdapter[GenerationOutcome] = TypeAdapter(GenerationOutcome)
+    outcome = adapter.validate_python(
+        {
+            "status": "clarification",
+            "clarification_question": "Which Year?",
+            "reason": "The date range is unclear.",
+        }
+    )
+    assert isinstance(outcome, ClarificationOutcome)
+
+
+def test_generation_outcome_routes_rejection() -> None:
+    adapter: TypeAdapter[GenerationOutcome] = TypeAdapter(GenerationOutcome)
+    outcome = adapter.validate_python(
+        {
+            "status": "rejection",
+            "code": "unsafe_request",
+            "message": "Requests that modify data are not supported.",
+        }
+    )
+    assert isinstance(outcome, RejectionOutcome)
+
+
+def test_generation_outcome_routes_proposal() -> None:
+    adapter: TypeAdapter[GenerationOutcome] = TypeAdapter(GenerationOutcome)
+    outcome = adapter.validate_python(
+        {
+            "status": "proposal",
+            "sql": "SELECT customer_id FROM erp.customers LIMIT 5",
+            "explanation": "Return 5 customer IDs.",
+            "tables_used": ["erp.customers"],
+            "assumptions": [],
+            "confidence": 0.8,
+        }
+    )
+    assert isinstance(outcome, ProposalOutcome)
