@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Annotated, Literal
+from typing import Annotated, Literal, Protocol
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 
@@ -55,3 +55,7 @@ class ProposalOutcome(BaseModel):
 GenerationOutcome = Annotated[
     ClarificationOutcome | RejectionOutcome | ProposalOutcome, Field(discriminator="status")
 ]
+
+
+class GenerationProvider(Protocol):
+    async def generate(self, request: GenerationRequest) -> GenerationOutcome: ...
