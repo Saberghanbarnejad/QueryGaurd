@@ -46,3 +46,4 @@ Thumbs.db
 
 # Personal project-management notes
 /.private/*
+/graphify-out/*
